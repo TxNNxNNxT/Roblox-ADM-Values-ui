@@ -1,0 +1,1724 @@
+
+.mega.static {
+    background: linear-gradient(180deg, rgb(187, 80, 253) 0%, rgb(130, 44, 226) 50%, rgb(81, 28, 182) 100%);
+}
+
+.neon.static {
+    background: none;
+    background-color:rgb(140, 198, 63);
+}
+
+.default.static {
+    background: none;
+    background-color:rgb(255, 102, 102);
+}
+
+.ride.static {
+    background: none;
+    background-color:rgb(237, 44, 121);
+}
+
+.fly.static {
+    background: none;
+    background-color:rgb(47, 152, 204);
+}
+
+input, textarea, [contenteditable="true"] {
+  user-select: text;
+  caret-color: auto;
+}
+
+div {
+    user-select: none;     /* Prevent text selection */
+    caret-color: transparent;  /* Hide the blinking caret */
+}
+
+html, body {
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
+}
+
+html {
+    --zoom: 1;
+    --zoomIfMac: 1;
+    --devicePixelRatio: 2;
+}
+
+
+@media (orientation:landscape) {
+    #inventorySystem {
+        --inventoryWidth: 1120px;
+        --inventoryHeight: 638.3px;
+
+        --inventoryWidth: calc(1120vw / 19.2);
+        --inventoryHeight: max(calc(638.3vh / 10.8), calc(638.3vw / 19.2));
+
+        --inventoryPositionX: 50vw;
+        --inventoryPositionY: 50vh;
+        --inventoryBorderRadius: min(calc(100px / var(--devicePixelRatio)), calc(100px / var(--zoom)));
+        --inventoryPadding: min(calc(50px / var(--devicePixelRatio)), calc(50px / var(--zoom)));
+
+        --inventoryGap: min(calc(15px / var(--devicePixelRatio)), calc(15px / var(--zoom)));
+
+        --inventoryButtonHeight: min(calc(61.6px / var(--zoom)), calc(61.6px / var(--devicePixelRatio)));
+
+        --font-size-20: min(calc(20px * 4 / 3 / var(--zoom)), calc(20px * 4 / 3 / var(--devicePixelRatio)));
+        --font-size-30: min(calc(30px * 4 / 3 / var(--zoom)), calc(30px * 4 / 3 / var(--devicePixelRatio)));
+        --font-size-40: min(calc(40px * 4 / 3 / var(--zoom)), calc(40px * 4 / 3 / var(--devicePixelRatio)));
+
+        --inventorySearchPadding: min(calc(15px / var(--devicePixelRatio)), calc(15px / var(--zoom))) min(calc(30px / var(--devicePixelRatio)), calc(30px / var(--zoom)));
+
+        --inventorySearchIconSize: calc(var(--inventoryButtonHeight) / 2.05);
+        --inventoryCloseSize: calc(var(--inventoryButtonHeight) / 3.085);
+
+        --inventoryOptionsButtonPadding: min(calc(15px / var(--devicePixelRatio)), calc(15px / var(--zoom))) min(calc(30px / var(--devicePixelRatio)), calc(30px / var(--zoom)));
+        --inventoryFilterButtonsPadding: min(calc(15px / var(--devicePixelRatio)), calc(15px / var(--zoom))) min(calc(50px / var(--devicePixelRatio)), calc(50px / var(--zoom)));
+        --inventoryFilterScrollButtonsWidth: min(calc(81.8px / var(--devicePixelRatio)), calc(81.8px / var(--zoom)));
+
+        --inventoryFilterScrollButtonsImageSize: calc(var(--inventoryFilterScrollButtonsWidth) / 4.09);
+
+        --gap5: min(calc(5px / var(--devicePixelRatio)), calc(5px / var(--zoom)));
+
+        --pixel: calc(calc(1px / var(--devicePixelRatio)) / var(--zoom));
+
+        --gap15: min(calc(15px / var(--devicePixelRatio)), calc(15px / var(--zoom)));
+        --gap30: min(calc(30px / var(--devicePixelRatio)), calc(30px / var(--zoom)));
+        
+        --inventoryDefaultScrollThumbHeight: min(128.3px, calc(128.3px / var(--zoom)));
+
+        --inventoryPetSize: calc(125px / var(--zoomIfMac) / var(--devicePixelRatio));
+        --inventoryPetSize2: calc(102px / var(--zoomIfMac) / var(--devicePixelRatio));
+        --inventoryPetsGap: min(calc(15px / var(--zoomIfMac)), calc(15px / var(--devicePixelRatio) / var(--zoomIfMac)));
+        --inventoryPetImageSize: 100%;
+        --inventoryPetImageSize2: 100%;
+
+        --inventoryPetPadding: calc(5% / 1.25) calc(10% / 1.25);
+        --inventoryPetPadding2: calc(8% / 1.02);
+        --inventoryPetInnerGap: calc(10% / 1.25);
+        --inventoryPetFontSize: 17.61cqw;
+        --inventoryPetTextSidePadding: calc(10% / 1.25);
+
+        --inventoryMutationButtonsWidth: min(calc(243.7px / var(--devicePixelRatio)), calc(243.7px / var(--zoom)));
+
+        --mutationMenuPadding: var(--inventoryPadding)
+        
+    }
+
+    #inventory {
+        grid-template-areas:
+        "optionsAndFilter search close"
+        "optionsAndFilter main scroll"
+        "optionsAndFilter attributes none";
+        grid-template-columns: min-content 1fr min-content;
+        grid-template-rows: min-content 1fr min-content;
+        grid-column-gap: calc(var(--gap30)) !important;
+        grid-row-gap: calc(var(--gap15)) !important;
+    }
+
+    #inventory #inventoryPetsScrollbar {
+        display:grid;
+    }
+
+    #inventory .filters #inventoryFiltersScroll {
+        display:flex;
+    }
+
+    #mutationMenu .upper {
+        gap:var(--gap30);
+    }
+
+    #inventory #inventoryFullscreen {
+        display:none !important;
+    }
+
+    #inventory .filters {
+        width:min-content;
+    }
+
+    #inventory .filters .upper {
+        width:min-content;
+    }
+
+    #inventory .filters .upper #inventoryFilters {
+        display: grid;
+        grid-auto-flow: row;
+        grid-template-columns: max(max-content, 100%);
+        overflow: hidden;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 0.1%, black 80%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 0.1%, black 80%, transparent 100%);
+        -webkit-mask-size: 105% 100%;
+        mask-size: 105% 100%;
+        transform: translateZ(0);
+    }
+
+    #inventory .filters .upper #inventoryFilters button {
+        margin-bottom:var(--gap5);
+    }
+
+    #inventory:not(.pets, .petsRarity) .filters .upper #inventoryFilters button.petsRarity {
+        transform:scale(1, 0);
+        height:0;
+    }
+
+    #inventory .filters .upper #inventoryFilters::after {
+        content: '';
+        display: block; 
+        height: calc(var(--inventoryButtonHeight) * 20);
+        pointer-events: none;
+    }
+
+    #inventory .filters {
+        height:calc(var(--inventoryHeight) - 2 * var(--inventoryPadding));
+    }
+
+    #inventory .filters .upper #options button > p {
+        font-size:var(--font-size-20);
+    }
+    
+    #inventory .filters .upper #inventoryFilters button > p {
+        font-size: var(--font-size-20);
+    }
+
+    #inventory #inventorySearch input {
+        font-size:var(--font-size-20);
+    }
+
+    #inventory #inventoryAttributes button {
+        font-size:var(--font-size-20);
+    }
+
+    #inventory #inventoryAttributes div.attributeSection input {
+        font-size: var(--font-size-20);
+    }
+
+    #inventory #inventoryAttributes div.attributeSection input::placeholder {
+        font-size: var(--font-size-20);
+    }
+
+    #mutationMenu {
+        left:50vw;
+        top:50vh;
+        
+        transition:transform 0.3s ease, margin-bottom 0.3s ease, opacity 0.3s ease;
+        transform:scale(0) translate(-50%, -50%);
+        width:var(--inventoryWidth);
+        border-radius:var(--inventoryBorderRadius);
+        
+    }
+
+
+
+    #mutationMenu .upper .options {
+        display:grid;
+        flex-grow:1;
+        grid-template-columns: repeat(auto-fit, var(--inventoryMutationButtonsWidth));
+        gap:var(--gap15);
+        justify-content: center;
+        align-items: start; 
+        mask:none !important;
+        -webkit-mask:none !important;
+    }
+
+    #mutationMenu .upper .options button {
+        font-size:var(--font-size-20);
+    }
+
+    #inventory.detailed #inventoryPets .pet {
+        padding:var(--inventoryPetPadding);
+        width:100%;
+        border-radius:20% / 15%;
+    }
+
+    #inventory #inventoryPets .pet {
+        padding:var(--inventoryPetPadding2);
+    }
+
+    #inventory .filters .upper #options button:hover {
+        transition:color 0.3s ease;
+        background:var(--theme-website-background);
+        color:var(--theme-main-color);
+    }
+
+    #inventory .filters .upper #options button:hover::after {
+        opacity:1;
+    }
+
+    #inventory #inventoryAttributes button.mutation:hover {
+        color:var(--theme-main-color);
+        background:var(--theme-website-background);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 1080px) {
+    #inventorySystem {
+        --internalZoom: 1;
+    }
+}
+
+@media (orientation:portrait) and (min-width: 1000px) and (max-width: 1080px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 1000);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 900px) and (max-width: 1000px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 900);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 750px) and (max-width: 900px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 750);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 640px) and (max-width: 750px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 640);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 540px) and (max-width: 640px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 540);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 500px) and (max-width: 540px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 500);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 450px) and (max-width: 500px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 450);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 400px) and (max-width: 450px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 400);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 350px) and (max-width: 400px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 350);
+    }
+}
+
+@media (orientation:portrait) and (min-width: 300px) and (max-width: 350px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 300);
+    }
+}
+
+@media (orientation:portrait) and (max-width: 300px) {
+    #inventorySystem {
+        --internalZoom: calc(1080 / 300);
+    }
+}
+
+@media (orientation:portrait) {
+    #inventorySystem {
+        --inventoryWidth: calc(980px / var(--internalZoom));
+        --inventoryHeight: calc(1240px / var(--internalZoom));
+
+        --inventoryWidth: calc(980vw / 10.8);
+        --inventoryHeight: calc(1240vh / 19.2);
+
+        --inventoryPositionX: calc(50vw);
+        --inventoryPositionY: calc(50vh);
+        --inventoryBorderRadius: min(calc(95px / var(--internalZoom)), calc(95px / var(--zoom) / var(--internalZoom)));
+        --inventoryPadding: min(calc(50px / var(--internalZoom)), calc(50px / var(--zoom) / var(--internalZoom)));
+
+        --inventoryGap: min(calc(15px / var(--internalZoom)), calc(15px / var(--zoom) / var(--internalZoom)));
+
+        --inventoryButtonHeight: min(calc(108px / var(--zoom) / var(--internalZoom)), calc(108px / var(--internalZoom)));
+
+        --font-size-20: min(calc(20px * 4 / 3 / var(--zoom) / var(--internalZoom)), calc(20px * 4 / 3 / var(--internalZoom)));
+        --font-size-30: min(calc(30px * 4 / 3 / var(--zoom) / var(--internalZoom)), calc(30px * 4 / 3 / var(--internalZoom)));
+        --font-size-40: min(calc(40px * 4 / 3 / var(--zoom) / var(--internalZoom)), calc(40px * 4 / 3 / var(--internalZoom)));
+
+        --inventorySearchPadding: min(calc(30px / var(--internalZoom)), calc(30px / var(--zoom) / var(--internalZoom))) min(calc(50px / var(--internalZoom)), calc(50px / var(--zoom) / var(--internalZoom)));
+
+        --inventorySearchIconSize: calc(var(--inventoryButtonHeight) / 2.25);
+        --inventoryCloseSize: calc(var(--inventoryButtonHeight) / 3.6);
+
+        --inventoryOptionsButtonPadding: min(calc(15px / var(--internalZoom)), calc(15px / var(--zoom) / var(--internalZoom))) min(calc(30px / var(--internalZoom)), calc(30px / var(--zoom) / var(--internalZoom)));
+        --inventoryFilterButtonsPadding: min(calc(30px / var(--internalZoom)), calc(30px / var(--zoom) / var(--internalZoom))) min(calc(70px / var(--internalZoom)), calc(70px / var(--zoom) / var(--internalZoom)));
+        --inventoryFilterScrollButtonsWidth: min(calc(81.8px / var(--internalZoom)), calc(81.8px / var(--zoom) / var(--internalZoom)));
+
+        --inventoryFilterScrollButtonsImageSize: calc(var(--inventoryFilterScrollButtonsWidth) / 4.09 / var(--internalZoom));
+
+        --gap5: min(calc(5px / var(--internalZoom)), calc(5px / var(--zoom) / var(--internalZoom)));
+
+        --pixel: calc(0.9px);
+
+        --gap15: min(calc(15px / var(--internalZoom)), calc(15px / var(--zoom) / var(--internalZoom)));
+        --gap30: min(calc(30px / var(--internalZoom)), calc(30px / var(--zoom) / var(--internalZoom)));
+        
+        --inventoryDefaultScrollThumbHeight: min(calc(128.3px / var(--internalZoom)), calc(128.3px / var(--zoom) / var(--internalZoom)));
+
+        --inventoryPetSize: calc(208.7px / var(--internalZoom));
+        --inventoryPetSize2: calc(208.7px / var(--internalZoom));
+        --inventoryPetsGap: calc(15px / var(--internalZoom));
+        --inventoryPetImageSize: calc((var(--inventoryPetSize) - 32.7px / var(--internalZoom)));
+        --inventoryPetImageSize2: calc((var(--inventoryPetSize2) - 32.7px / var(--internalZoom)));
+
+        --inventoryPetPadding: calc(5px / var(--internalZoom));
+        --inventoryPetPadding2: calc(8px / var(--internalZoom));
+        --inventoryPetInnerGap: calc(10px / var(--internalZoom));
+        --inventoryPetFontSize: calc(20px * 4 / 3 / var(--internalZoom));
+        --inventoryPetTextSidePadding: calc(10px / var(--internalZoom));
+
+        --inventoryMutationButtonsWidth: min(calc(243.7px / var(--internalZoom)), calc(243.7px / var(--zoom) / var(--internalZoom)));
+
+        --mutationMenuPadding: min(calc(125px / var(--internalZoom)), calc(125px / var(--zoom) / var(--internalZoom))) min(calc(50px / var(--internalZoom)), calc(50px / var(--zoom) / var(--internalZoom)));
+    }
+
+    #inventory {
+        grid-template-areas:
+            "search close"
+            "optionsAndFilter optionsAndFilter"
+            "main main"
+            "attributes attributes";
+        grid-template-rows: auto auto 1fr auto; /* <-- key change */
+        grid-template-columns: 1fr auto; /* or adjust if needed */
+    }
+
+    #inventory #inventoryPetsScrollbar {
+        display:none;
+    }
+
+    #inventory .filters #inventoryFiltersScroll {
+        display:none !important;
+    }
+
+    #mutationMenu .upper {
+        gap:var(--gap15);
+    }
+
+    #inventory #inventoryFullscreen {
+        display:flex;
+    }
+
+    #inventory .filters {
+        width:100%;
+    }
+
+    #inventory.fullscreen .filters {
+        width:100%;
+        margin-bottom:calc(var(--gap30) + var(--gap5))
+    }
+
+    #inventory .filters .upper {
+        width:100%;
+    }
+
+    #inventory .filters .upper #inventoryFilters {
+        display:flex;
+        flex-direction:row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
+        -webkit-mask-size: 100% 105%;
+        mask-size: 100% 105%;
+        margin-bottom:calc(var(--gap30) + var(--gap5))
+    }
+
+    
+
+    #inventory .filters .upper #inventoryFilters::-webkit-scrollbar {
+        display: none;
+    }
+
+    #inventory .filters .upper #inventoryFilters button {
+        margin-bottom:0;
+        margin-right:var(--gap15);
+        width:auto;
+    }
+
+    #inventory:not(.pets, .petsRarity) .filters .upper #inventoryFilters button.petsRarity {
+        transform:scale(0, 1);
+        width:0;
+        margin-right:0;
+    }
+
+    #inventory .filters .upper #inventoryFilters::after {
+        display:none;
+    }
+
+    #inventory .filters {
+        height:max-content;
+    }
+
+    #inventory.fullscreen .filters .upper #inventoryFilters {
+        display:none !important;
+    }
+
+    #inventory .filters .upper #options button > p {
+        font-size:var(--font-size-30);
+    }
+
+    #inventory .filters .upper #inventoryFilters button > p {
+        font-size: var(--font-size-30);
+    }
+
+    #inventory #inventorySearch input {
+        font-size:var(--font-size-30);
+    }
+
+    #inventory #inventoryAttributes button {
+        font-size:var(--font-size-30);
+    }
+
+    #inventory #inventoryAttributes div.attributeSection input {
+        font-size: var(--font-size-30);
+    }
+
+    #inventory #inventoryAttributes div.attributeSection input::placeholder {
+        font-size: var(--font-size-30);
+    }
+
+    #mutationMenu .upper .title {
+        display:none;
+    }
+
+    #mutationMenu {
+        left:0;
+        bottom:0;
+        transform:translate(0%, 0%) !important;
+        width:100vw;
+        height:50vh;
+        transition:transform 0s ease, margin-bottom 0.3s ease, opacity 0.3s ease;
+        border-radius:var(--inventoryBorderRadius) var(--inventoryBorderRadius) 0 0;
+        padding-bottom:calc(var(--inventoryPadding) * 3) !important;
+        padding-top:calc(var(--gap5) * 26) !important;
+        overflow:hidden;
+    }
+
+    #mutationMenu::after {
+        content: "";
+        position: absolute;
+        width: calc(var(--gap30) * 2 + var(--gap5) * 2);
+        height: var(--inventoryPetInnerGap);
+        border-radius: calc(var(--inventoryPetInnerGap) / 2);
+        background-color: var(--theme-second-color);
+        top: calc(var(--gap15) + var(--gap5));
+        z-index:1;
+        left:50%;
+        transform:translate(-50%, 0%);
+        opacity:1;
+        padding:0 0;
+        mask:none;
+        -webkit-mask:none;
+    }
+
+    #mutationMenu:not(.open) {
+        margin-bottom:-125%;
+    }
+
+    #mutationMenu .back {
+        display:none;
+        
+    }
+
+    #mutationMenu .upper {
+        height:100%;
+    }
+
+    #mutationMenu .upper .options {
+        display:flex;
+        flex-direction:column;
+        gap:0px;
+        align-items:center;
+        overflow-y:scroll;
+        overflow-x:hidden;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        flex-grow:1;
+        min-height:0;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+        -webkit-mask-size: 105% 100%;
+        mask-size: 105% 100%;
+        width:50%;
+
+        will-change: transform;
+        transform: translateZ(0);
+        overscroll-behavior: contain;
+    }
+
+
+
+    #mutationMenu .upper .options button:hover {
+        background:none !important;
+    }
+
+    #mutationMenu .upper .options button::before {
+        display:none;
+    }
+
+    #mutationMenu .upper .options button:not(:last-child)::after {
+        display:block;
+        width:300%;
+        height:calc(var(--pixel) * 1.25);
+        background:linear-gradient(90deg, rgb(0, 0, 0, 0) 0%, var(--theme-main-color) 50%, rgb(0, 0, 0, 0) 100%);;
+        mask:none;
+        -webkit-mask:none;
+        position:absolute;
+        bottom:0px;
+        top:unset !important;
+        right:unset !important;
+        left:unset !important;
+        opacity:1;
+        padding:0 !important;
+    }
+
+    #mutationMenu .upper .options button:nth-child(1) {
+        padding-top:0px !important;
+    }
+
+    #mutationMenu .upper .options button:last-child {
+        padding-bottom:0px !important;
+    }
+
+    #mutationMenu .upper .options button {
+        font-size:var(--font-size-30);
+        width:calc(100% / 3) !important;
+        transition:transform 0.6s ease;
+        vertical-align: top;
+        white-space: normal;
+        padding:calc(var(--gap30) * 1 + var(--gap5) * 4) 0px;
+        height:auto !important;
+    }
+
+    #mutationMenu .upper .options button svg {
+        display:none;
+    }
+
+    #inventory #inventoryAttributes button.mutation:hover {
+        color:var(--theme-second-color);
+    }
+
+    #inventory #inventoryAttributes button.mutation:hover::after {
+        opacity:0 !important;
+    }
+
+    #mutationMenu .upper .options button:hover {
+        transform:scale(1.05);
+    }
+
+    #mutationMenu .upper .options button:hover::after {
+        transform:scale(1 / 1.05); 
+        bottom:0px;
+    }
+
+    #inventory #inventoryAttributes {
+        margin-top:calc(var(--gap30) + var(--gap5));
+    }
+
+    #inventory.detailed #inventoryPets .pet:not(.addButton) {
+        padding:calc(15% / 2.08) !important;
+        aspect-ratio:0.69;
+        width:100%;
+        border-radius:20% / 13.8%;
+        justify-content:space-between !important;
+        gap:0px;
+        position:relative;
+    }
+
+    #inventory.detailed #inventoryPets .pet p {
+        font-size:calc(10000% * 2.4111 / 8.8 * 4 / 3);
+        padding:0 calc(50% - 148.8% / 1.76 / 2);
+    }
+
+    #inventory #inventoryPets .pet {
+        padding:calc(16% / 2.08) !important;
+    }
+
+    #inventory .filters .upper #options button.hover {
+        transition:color 0.3s ease;
+        background:var(--theme-website-background);
+        color:var(--theme-main-color);
+    }
+
+    #inventory .filters .upper #options button.hover::after {
+        opacity:1;
+    }
+
+    #inventory #inventorySearch {
+        padding-left:var(--gap30) !important;
+    }
+
+}
+
+
+#inventory {
+    transform-origin: 0% 0%;
+    position:fixed;
+    width:var(--inventoryWidth);
+    height:var(--inventoryHeight);
+    left:var(--inventoryPositionX);
+    top:var(--inventoryPositionY);
+    border-radius:var(--inventoryBorderRadius);
+    padding:var(--inventoryPadding);
+    background:var(--theme-website-background);
+    box-sizing:border-box;
+    display:grid;
+    gap:var(--inventoryGap);
+    overflow:hidden;
+    transform:scale(0) translate(-50%, -50%);
+    transition:transform 0.3s ease;
+    z-index:3;
+    pointer-events:all;
+    opacity:0;
+    
+}
+
+
+
+
+#inventory #inventorySearch {
+    height:var(--inventoryButtonHeight);
+    width:100%;
+    border:var(--pixel) solid var(--theme-second-color);
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    padding:var(--inventorySearchPadding);
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    box-sizing:border-box;
+    grid-area:search;
+}
+
+#inventory #inventorySearch input {
+    flex-grow:1;
+    height:100%;
+    width:100%;
+    color:var(--theme-main-color);
+    font-family:"Aileron", sans-serif;
+    font-weight:normal;
+    background:none;
+    border:none;
+    outline: none;
+
+}
+
+#inventory #inventorySearch input::placeholder {
+    content:"Search";
+    color:var(--theme-second-color);
+    font-family:inherit;
+    font-weight:inherit;
+    font-size:inherit;
+    border:none;
+}
+
+
+
+#inventory #inventorySearch .searchIcon {
+    width:var(--inventorySearchIconSize);
+    aspect-ratio:1;
+
+    background-color: var(--theme-second-color);
+
+    mask-image: url('/images/misc/search.png');
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-position: center;
+
+    -webkit-mask-image: url('/images/misc/search.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    -webkit-mask-position: center;
+}
+
+#inventory #inventoryClose:hover::after {
+    opacity:1;
+}
+
+#inventory #inventoryClose {
+    height:var(--inventoryButtonHeight);
+    width:var(--inventoryButtonHeight);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    cursor:pointer;
+    grid-area:close;
+}
+
+
+#inventory #inventoryClose:hover > div {
+    transform:scale(1.1);
+}
+
+#inventory #inventoryClose > div {
+    width:var(--inventoryCloseSize);
+    aspect-ratio:1;
+    background-color: var(--theme-second-color);
+    transition:transform 0.3s ease;
+
+    mask-image: url('/images/nav/x.png');
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-position: center;
+
+    -webkit-mask-image: url('/images/nav/x.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    -webkit-mask-position: center;
+}
+
+
+#inventory .filters .upper #options button {
+    background: none;
+    border: none;
+    height: var(--inventoryButtonHeight);
+    border-radius: calc(var(--inventoryButtonHeight) / 2.05);
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    color: var(--theme-second-color);
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:0px 0px;
+
+}
+
+#inventory .filters .upper #options button > p {
+    font-family: "Aileron", sans-serif;
+    color:inherit;
+    font-weight:800;
+    padding: var(--inventoryOptionsButtonPadding);
+    margin:0px;
+    white-space: nowrap;
+}
+
+
+#inventory .filters .upper #options {
+    display: flex;
+    flex-direction:row;
+    width: 100%;
+    gap:var(--gap15);
+}
+
+svg {
+    position:absolute;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    pointer-events: none;
+    left:0;
+    top:0;
+}
+
+
+
+
+.fadeBorder {
+  will-change: transform;
+  transform: translateZ(0);
+  position:relative;
+}
+
+/*
+
+.fadeBorder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+
+    border-radius: inherit;
+    padding: var(--pixel);
+    box-sizing: border-box;
+
+    background: var(--theme-subtle-outline);
+
+    -webkit-mask:
+        linear-gradient(white 0 0) content-box,
+        linear-gradient(white 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(white 0 0) content-box,
+        linear-gradient(white 0 0);
+    mask-composite: exclude;
+}
+
+*/
+
+
+
+
+.fadeBorder::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--theme-subtle-outline-fill);
+    border-radius: inherit;
+    z-index: 2;
+    padding: var(--pixel);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;      /* older WebKit */
+    mask-composite: exclude; 
+    pointer-events: none;
+    transition:opacity 0.3s ease;
+    opacity:0;
+}
+
+#inventory .filters {
+    display: flex;
+    flex-direction:column;
+    gap:var(--gap5);
+    justify-content:space-between;
+    overflow:hidden;
+    grid-area:optionsAndFilter;
+
+}
+
+#inventory .filters .upper {
+    display: flex;
+    flex-direction:column;
+    gap:var(--inventoryGap);
+    min-width: 0;
+    flex-grow:1;
+    overflow:hidden;
+
+}
+
+#inventory .filters .upper #inventoryFilters {
+    width:100%;
+}
+
+
+#inventory .filters .upper #inventoryFilters::-webkit-scrollbar {
+    display: none;
+}
+
+
+#inventory:not(.pets, .petsRarity) .filters .upper #inventoryFilters button.petsRarity {
+    opacity:0;
+    margin-bottom:0;
+}
+
+#inventory.selectFavorites .filters .upper #inventoryFilters button.favorites {
+    background:var(--theme-website-background);
+    color:var(--theme-main-color);
+}
+
+#inventory.selectFavorites .filters .upper #inventoryFilters button.favorites::after {
+    opacity:1;
+}
+
+#inventory .filters .upper #inventoryFilters button {
+    background: none;
+    border: none;
+    height: var(--inventoryButtonHeight);
+    border-radius: calc(var(--inventoryButtonHeight) / 2.05);
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    color: var(--theme-second-color);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:0px 0px;
+    opacity:1;
+    transform:scale(1, 1);
+    transition:transform 0.3s ease, margin-bottom 0.3s ease, margin-right 0.3s ease, opacity 0.3s ease, height 0.3s ease, width 0.3s ease;
+}
+
+#inventory .filters .upper #inventoryFilters button > p {
+    font-family: "Aileron", sans-serif;
+    color:inherit;
+    font-weight:normal;
+    padding: var(--inventoryFilterButtonsPadding);
+    margin:0px;
+    white-space: nowrap;
+}
+
+
+
+#inventory .filters .upper #inventoryFilters button.selected {
+    cursor:auto !important;
+}
+
+#inventory .filters .upper #inventoryFilters button:hover::after, #inventory .filters .upper #inventoryFilters button.selected::after,
+#inventory .filters #inventoryFiltersScroll button:hover::after {
+    opacity:1;
+}
+#inventory .filters .upper #inventoryFilters button:hover, 
+#inventory .filters .upper #inventoryFilters button.selected,
+#inventory .filters #inventoryFiltersScroll button:hover {
+    background: var(--theme-website-background);
+    color:var(--theme-main-color);
+}
+
+
+#inventory .filters #inventoryFiltersScroll {
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+}
+
+#inventory .filters #inventoryFiltersScroll button {
+    width:var(--inventoryFilterScrollButtonsWidth);
+    height:var(--inventoryButtonHeight);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+
+#inventory .filters #inventoryFiltersScroll button:hover div.image {
+    transform:scale(1.1);
+}
+
+#inventory .filters #inventoryFiltersScroll p {
+    font-family:"Aileron", sans-serif;
+    font-weight:normal;
+    color:var(--theme-second-color);
+    font-size:var(--font-size-20);
+    margin:0px;
+}
+
+#inventory .filters #inventoryFiltersScroll button div.image {
+    aspect-ratio:2/3;
+    height:var(--inventoryFilterScrollButtonsImageSize);
+    transition:transform 0.3s ease;
+    background-color:var(--theme-second-color);
+
+    mask-image: url('/images/misc/arrow2.svg');
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-position: center;
+
+    -webkit-mask-image: url('/images/misc/arrow2.svg');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    -webkit-mask-position: center;
+}
+
+#inventory .filters #inventoryFiltersScroll button div.image.reverse {
+    scale:-1 1;
+}
+
+
+#inventory #inventoryAttributes {
+    grid-area:attributes;
+    height:min-content;
+}
+
+#inventory #inventoryAttributes > div {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:var(--gap15);
+    width:100%;
+}
+
+#inventory #inventoryAttributes button.selected {
+    cursor:auto;
+}
+
+#inventory #inventoryAttributes button.selected,
+#inventory #inventoryAttributes button:hover {
+    color:var(--theme-fade);
+}
+
+#inventory #inventoryAttributes #inventoryGrowAGardenAttributes {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+}
+
+#inventory #inventoryAttributes button.mutationAdded {
+    background:var(--theme-website-background);
+}
+
+#inventory #inventoryAttributes button {
+    width:100%;
+    height:var(--inventoryButtonHeight);
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    border:none;
+    font-weight:800;
+    font-family:"Aileron", sans-serif;
+    transition:color 0.3s ease;
+    background:none;
+    position:relative;
+    color:var(--theme-second-color);
+    background:none;
+    cursor:pointer;
+}
+
+#inventory #inventoryAttributes div.attributeSection {
+    width:100%;
+    height:var(--inventoryButtonHeight);
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    border:none;
+    transition:color 0.3s ease;
+    background:none;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:row;
+    font-weight: 800;
+    font-size: var(--font-size-20);
+    font-family: "Aileron", sans-serif;
+    color: var(--theme-second-color);
+    overflow:hidden;
+}
+
+#inventory #inventoryAttributes div.attributeSection input:focus::placeholder {
+  color: transparent;
+}
+
+#inventory #inventoryAttributes div.attributeSection input {
+    background: none;
+    outline: none;
+    border: none;
+    font-weight: 800;
+    font-family: "Aileron", sans-serif;
+    color: var(--theme-second-color);
+    margin: 0;
+    padding: 0;
+    width: 80%;
+    text-align: center;
+    box-sizing: border-box;
+    line-height: 1;
+
+}
+
+
+
+#inventory #inventoryAttributes div.attributeSection input::placeholder {
+    font-weight: 800;
+    font-family: "Aileron", sans-serif;
+    color: var(--theme-second-color);
+    text-align: center;
+    line-height: 1;
+}
+
+#inventory #inventoryAttributes div.attributeSection input::-webkit-input-placeholder {
+  text-align: center;
+}
+
+#inventory #inventoryAttributes div.attributeSection input::-moz-placeholder {
+  text-align: center;
+}
+
+#inventory #inventoryPetsScrollbar {
+    width:var(--inventoryButtonHeight);
+    height:100%;
+    grid-area:scroll;
+}
+
+
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--theme-subtle-outline);
+    border-radius: inherit;
+    z-index: -2;
+    padding: var(--pixel);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;      /* older WebKit */
+    mask-composite: exclude; 
+    pointer-events: none;
+}
+
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button:hover.deactivate::after {
+    opacity:0;
+}
+
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button:hover.deactivate {
+    color:var(--theme-second-color);
+}
+
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button.selected::after, 
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button:hover::after {
+    opacity:1;
+}
+
+#inventory #inventoryAttributes #inventoryAdoptMeAttributes button::after {
+    content:"";
+    z-index:-1;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    width:100%;
+    height:100%;
+    border-radius:inherit;
+    opacity:0;
+    transition:opacity 0.3s ease;
+}
+
+.mega::after {
+    background: linear-gradient(135deg, rgb(187, 80, 253) 0%, rgb(69, 3, 198) 50%, rgb(81, 28, 182) 100%);
+}
+
+.neon::after {
+    background: linear-gradient(135deg, rgb(193, 255, 110) 0%, rgb(140, 198, 63) 50%, rgb(19, 114, 11) 100%);
+}
+
+.default::after {
+    background: linear-gradient(135deg, rgb(255, 145, 0) 0%, rgb(255, 102, 102) 50%, rgb(255, 102, 102) 100%);
+}
+
+.ride::after {
+    background: linear-gradient(135deg, rgb(255, 197, 220) 0%, rgb(237, 44, 121) 50%, rgb(255, 0, 101) 100%);
+}
+
+.fly::after {
+    background: linear-gradient(135deg, rgb(142, 202, 232) 0%, rgb(47, 152, 204) 50%, rgb(0, 134, 200) 100%);
+}
+
+#inventory #inventoryPetsScrollbar {
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    background: var(--theme-website-background);
+
+} 
+
+#inventory #inventoryPetsScrollbar #inventoryPetsThumb {
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    width:var(--inventoryButtonHeight);
+    /*min-height:var(--inventoryButtonHeight);*/
+    min-height:var(--inventoryDefaultScrollThumbHeight);
+    background: var(--theme-website-background);
+} 
+
+#inventory.detailed #inventoryPets {
+    grid-template-columns: repeat(auto-fit, minmax(var(--inventoryPetSize), 1fr));;
+}
+
+
+#inventory #inventoryPets {
+    overflow-y:scroll;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain; 
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--inventoryPetSize2), 1fr));;
+    grid-auto-rows: min-content;
+    gap: var(--inventoryPetsGap);
+    justify-content: center;
+    align-items: start; 
+    grid-area:main;
+    box-sizing:border-box;
+    min-height: 0;
+
+    max-height: 100%;
+
+    mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 70%, transparent 100%);
+
+    margin-top:calc(var(--inventoryPetsGap) * -1);
+}
+
+#inventory #inventoryPets::-webkit-scrollbar {
+    display: none;
+}
+
+
+#inventory #inventoryPets .pet img.delFilter {
+    filter: invert(59%) sepia(47%) saturate(4578%) hue-rotate(323deg) brightness(108%) contrast(107%);
+}
+
+
+
+#inventory #inventoryPets .pet:hover::after {
+    opacity:1;
+}
+
+
+
+svg:not(:root) {
+    overflow-clip-margin: content-box;
+    overflow: hidden;
+}
+
+
+#inventory.selectFavorites #inventoryPets .pet.favorites:not(.addButton)::after {
+    background:none;
+    background-color:#CBA328;
+    padding:calc(var(--pixel) * 2);
+    opacity:1;
+}
+
+#inventory.selectFavorites #inventoryPets .pet.favorites:not(.addButton) p {
+    color:#CBA328;
+}
+
+#inventory:not(.detailed) #inventoryPets .pet {
+    aspect-ratio:1;
+    justify-content:center;
+    align-items:center;
+}
+
+#inventory #inventoryPets .pet {
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    height:min-content;
+    align-items:center;
+    gap:var(--inventoryPetInnerGap);
+    box-sizing:border-box;
+    border-radius:26%;
+    background:var(--theme-website-background);
+    min-height:0px;
+    cursor:pointer;
+    overflow:hidden;
+    position:relative;
+    container-type:inline-size;
+}
+
+#inventory #inventoryPets .pet.selected::after {
+    opacity:1;
+    background:var(--theme-attention-color);
+}
+
+#inventory #inventoryPets .pet.selected p {
+    color:var(--theme-attention-color) !important;
+}
+
+#inventory.detailed #inventoryPets .pet.addButton {
+    height:100%;
+    justify-content:center;
+}
+
+
+#inventory.detailed #inventoryPets .pet > p.name {
+    display:block;
+}
+
+#inventory.detailed.value #inventoryPets .pet > p.value.gag {
+    display:block;
+}
+
+#inventory.detailed.sheckles #inventoryPets .pet > p.sheckles.gag {
+    display:block;
+}
+
+#inventory.detailed.sheckles #inventoryPets .pet > p.value.gag {
+    display:none;
+}
+
+
+
+#inventory.value.detailed.d:not(.f, .r) #inventoryPets .pet > p.value.d {
+    display:block;
+}
+
+#inventory.value.detailed.d.f:not(.r) #inventoryPets .pet > p.value.df {
+    display:block;
+}
+
+#inventory.value.detailed.d.r:not(.f) #inventoryPets .pet > p.value.dr {
+    display:block;
+}
+
+#inventory.value.detailed.d.f.r #inventoryPets .pet > p.value.dfr {
+    display:block;
+}
+
+
+#inventory.value.detailed.n:not(.f, .r) #inventoryPets .pet > p.value.n {
+    display:block;
+}
+
+#inventory.value.detailed.n.f:not(.r) #inventoryPets .pet > p.value.nf {
+    display:block;
+}
+
+#inventory.value.detailed.n.r:not(.f) #inventoryPets .pet > p.value.nr {
+    display:block;
+}
+
+#inventory.value.detailed.n.f.r #inventoryPets .pet > p.value.nfr {
+    display:block;
+}
+
+
+#inventory.value.detailed.m:not(.f, .r) #inventoryPets .pet > p.value.m {
+    display:block;
+}
+
+#inventory.value.detailed.m.f:not(.r) #inventoryPets .pet > p.value.mf {
+    display:block;
+}
+
+#inventory.value.detailed.m.r:not(.f) #inventoryPets .pet > p.value.mr {
+    display:block;
+}
+
+#inventory.value.detailed.m.f.r #inventoryPets .pet > p.value.mfr {
+    display:block;
+}
+
+
+#inventory.frost.detailed.d:not(.f, .r) #inventoryPets .pet > p.frost.d {
+    display:block;
+}
+
+#inventory.frost.detailed.d.f:not(.r) #inventoryPets .pet > p.frost.df {
+    display:block;
+}
+
+#inventory.frost.detailed.d.r:not(.f) #inventoryPets .pet > p.frost.dr {
+    display:block;
+}
+
+#inventory.frost.detailed.d.f.r #inventoryPets .pet > p.frost.dfr {
+    display:block;
+}
+
+
+#inventory.frost.detailed.n:not(.f, .r) #inventoryPets .pet > p.frost.n {
+    display:block;
+}
+
+#inventory.frost.detailed.n.f:not(.r) #inventoryPets .pet > p.frost.nf {
+    display:block;
+}
+
+#inventory.frost.detailed.n.r:not(.f) #inventoryPets .pet > p.frost.nr {
+    display:block;
+}
+
+#inventory.frost.detailed.n.f.r #inventoryPets .pet > p.frost.nfr {
+    display:block;
+}
+
+
+#inventory.frost.detailed.m:not(.f, .r) #inventoryPets .pet > p.frost.m {
+    display:block;
+}
+
+#inventory.frost.detailed.m.f:not(.r) #inventoryPets .pet > p.frost.mf {
+    display:block;
+}
+
+#inventory.frost.detailed.m.r:not(.f) #inventoryPets .pet > p.frost.mr {
+    display:block;
+}
+
+#inventory.frost.detailed.m.f.r #inventoryPets .pet > p.frost.mfr {
+    display:block;
+}
+
+
+#inventory.detailed #inventoryPets .pet.hideValue > p.value.d {
+    display:block;
+    opacity:0;
+}
+
+#inventory.detailed #inventoryPets .pet.hideValue > p.value {
+    display:none;
+}
+
+#inventory.detailed #inventoryPets .pet.hideAttributesValue > p.value.d {
+    display:block;
+}
+
+#inventory.detailed #inventoryPets .pet.hideAttributesValue > p.value {
+    display:none;
+}
+
+
+#inventory #inventoryPets .pet:hover p {
+    color:var(--theme-main-color);
+}
+
+
+#inventory #inventoryPets .pet p {
+    margin:0px;
+    font-size:var(--inventoryPetFontSize);
+    font-weight:bold;
+    color:var(--theme-second-color);
+    font-family:"Aileron", sans-serif;
+    width:100%;
+    text-align:center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding:0px var(--inventoryPetTextSidePadding);
+    box-sizing:border-box;
+    display:none;
+    transition:color 0.3s ease;
+}
+
+
+
+/*#inventory #inventoryPets .pet:hover img {
+    transform:scale(1.05);
+}*/
+
+
+
+#inventory #inventoryPets .pet img {
+    aspect-ratio:1;
+    transition:transform 0.6s ease;
+}
+ 
+#inventory.detailed #inventoryPets .pet img {
+    width:100%;
+    /*width:var(--inventoryPetImageSize);*/
+}
+
+#inventory #inventoryPets .pet img {
+    width:100%;
+    /*width:var(--inventoryPetImageSize2);*/
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.pets {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.eggs {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.vehicles {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.pet-wear {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.other {
+    display:none;
+}
+
+#inventory.am #inventoryAttributes #inventoryGrowAGardenAttributes {
+    display:none;
+}
+
+#inventory.gag #inventoryAttributes #inventoryAdoptMeAttributes {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.food {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.strollers {
+    display:none;
+}
+
+#inventory.gag .filters .upper #inventoryFilters button.toys {
+    display:none;
+}
+
+#inventory #inventoryAttributes button.mutation:hover::after {
+    opacity:1;
+}
+
+#mutationMenu {
+    transform-origin: 0% 0%;
+    position:fixed;
+    background:var(--theme-website-background);
+    z-index:4;
+    display:none;
+
+    flex-direction:column;
+    align-items:center;
+    padding:var(--inventoryPadding);
+    box-sizing:border-box;
+    justify-content:space-between;
+    gap:var(--inventoryBorderRadius);
+}
+
+@media (orientation: landscape) {
+    #mutationMenu::before {
+        display:none;
+    }
+}
+
+@media (orientation: portrait) {
+    #mutationMenu > svg {
+        display:none !important;
+    }
+
+    #mutationMenu::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+
+        border-radius: inherit;
+        padding: var(--pixel);
+        box-sizing: border-box;
+
+        background: var(--theme-subtle-outline);
+
+        -webkit-mask:
+            linear-gradient(white 0 0) content-box,
+            linear-gradient(white 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+            linear-gradient(white 0 0) content-box,
+            linear-gradient(white 0 0);
+        mask-composite: exclude;
+    }
+}
+
+#mutationMenu .upper {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+}
+
+#mutationMenu .upper .title {
+    font-size:var(--font-size-40);
+    font-family:"Aileron", sans-serif;
+    color:var(--theme-main-color);
+    font-weight:800;
+    margin:0px;
+}
+
+#mutationMenu .back {
+    font-size:var(--font-size-20);
+    font-family:"Aileron", sans-serif;
+    color:var(--theme-main-color);
+    font-weight:normal;
+    background:var(--theme-website-background);
+    border:none;
+    height:var(--inventoryButtonHeight);
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    cursor:pointer;
+    padding:var(--inventoryFilterButtonsPadding);
+}
+
+#mutationMenu .back:hover::after {
+    opacity:1;
+}
+
+#mutationMenu .upper .options {
+    width:100%;
+}
+
+#mutationMenu .upper .options button {
+    font-family:"Aileron", sans-serif;
+    color:var(--theme-second-color);
+    font-weight:normal;
+    background:none;
+    border:none;
+    width:var(--inventoryMutationButtonsWidth);
+    height:var(--inventoryButtonHeight);
+    border-radius:calc(var(--inventoryButtonHeight) / 2.05);
+    cursor:pointer;
+    transition:color 0.3s ease;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#mutationMenu .upper .options button:hover {
+    color:var(--theme-main-color);
+    background:var(--theme-website-background);
+}
+
+#mutationMenu .upper .options button:hover::after {
+    opacity:1;
+}
+
+#inventory #inventoryAttributes button p {
+    font-size:inherit;
+    font-weight:inherit;
+    font-family:inherit;
+    color:inherit;
+    margin:0px;
+}
+
+#mutationBackground {
+    display:none;
+    position:fixed;
+    left:0;
+    top:0;
+    width:100vw;
+    height:100vh;
+    background-color:black;
+    opacity:0;
+    z-index:3;
+    transition:opacity 0.3s ease;
+}
+
+#inventoryBackground {
+    display:none;
+    position:fixed;
+    left:0;
+    top:0;
+    width:100vw;
+    height:100vh;
+    background-color:black;
+    opacity:0;
+    z-index:2;
+    transition:opacity 0.3s ease;
+}
+
+#inventorySystem:has(#inventory.detailed) #inventoryPetWidthCalculator {
+    width:var(--inventoryPetSize);
+}
+
+#inventorySystem #inventoryPetWidthCalculator {
+    width:var(--inventoryPetSize2);
+    height:var(--inventoryPetSize);
+    position:absolute;
+    visibility:hidden;
+    pointer-events: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#inventoryGrowAGardenAttributes .attributeSection {
+    display:none !important;
+}
+
+#inventory #inventoryAttributes #inventoryGrowAGardenAttributes {
+    grid-template-columns:1fr !important;
+}
+
+#inventory #inventoryPets.rebuilding {
+    visibility:hidden;
+}
