@@ -1,0 +1,1653 @@
+document.documentElement.style.setProperty('--gradient-degree', '90deg');
+
+var petsData = ""
+var gagpetsData = ""
+var fetchPets = fetchPetsData()
+var fetchGagPets = fetchGrowAGardenPetsData()
+var selectedFilterTypeRarity = "";
+var selectedFilterType = ""; // Initialize the selected filter type as empty
+var selectedFavorites = "";
+var highlight_favorites = "";
+
+var usedPets = ""
+
+const inventoryBridge = (() => {
+  let cachedWindow = null;
+  let readyPromise = null;
+
+  function findIframe() {
+    return document.getElementById("inventoryIframe");
+  }
+
+  function waitForIframeElement(resolve) {
+    const iframe = findIframe();
+    if (iframe) {
+      resolve(iframe);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const iframe = findIframe();
+      if (iframe) {
+        observer.disconnect();
+        resolve(iframe);
+      }
+    });
+
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
+
+  function waitForWindow() {
+    if (cachedWindow && !cachedWindow.closed) {
+      return Promise.resolve(cachedWindow);
+    }
+
+    if (!readyPromise) {
+      readyPromise = new Promise(resolve => {
+        waitForIframeElement(iframe => {
+          const settle = () => {
+            if (iframe.contentWindow && typeof iframe.contentWindow.openInventory === "function") {
+              cachedWindow = iframe.contentWindow;
+              resolve(cachedWindow);
+              return true;
+            }
+            return false;
+          };
+
+          if (settle()) {
+            return;
+          }
+
+          let pollId = null;
+
+          const startPolling = () => {
+            if (settle()) {
+              if (pollId !== null) {
+                clearInterval(pollId);
+                pollId = null;
+              }
+              return;
+            }
+
+            if (pollId !== null) {
+              return;
+            }
+
+            pollId = setInterval(() => {
+              if (settle()) {
+                clearInterval(pollId);
+                pollId = null;
+              }
+            }, 50);
+          };
+
+          iframe.addEventListener("load", startPolling, { once: true });
+          startPolling();
+        });
+      });
+    }
+
+    return readyPromise;
+  }
+
+  function run(cb) {
+    waitForWindow().then(win => {
+      if (win) {
+        cb(win);
+      }
+    });
+  }
+
+  function call(method, ...args) {
+    run(win => {
+      const fn = win[method];
+      if (typeof fn === "function") {
+        fn.apply(win, args);
+      }
+    });
+  }
+
+  function mutateInventory(cb) {
+    run(win => {
+      const inventoryEl = win.document?.getElementById("inventory");
+      if (inventoryEl) {
+        cb(inventoryEl, win);
+      }
+    });
+  }
+
+  return { waitForWindow, run, call, mutateInventory };
+})();
+
+inventoryBridge.waitForWindow();
+
+function syncInventoryClasses(add = [], remove = []) {
+  const listToAdd = Array.isArray(add) ? add : [add];
+  const listToRemove = Array.isArray(remove) ? remove : [remove];
+
+  inventoryBridge.mutateInventory(inventoryEl => {
+    listToRemove.forEach(cls => cls && inventoryEl.classList.remove(cls));
+    listToAdd.forEach(cls => cls && inventoryEl.classList.add(cls));
+  });
+}
+
+let inventoryReady = false;
+const inventoryReadyQueue = [];
+
+function resolveInventoryReady() {
+  if (inventoryReady) return;
+  inventoryReady = true;
+  if (document.body) {
+    document.body.classList.remove("inventory-loading");
+    document.body.classList.add("inventory-ready");
+  }
+  while (inventoryReadyQueue.length) {
+    const cb = inventoryReadyQueue.shift();
+    try {
+      cb();
+    } catch (error) {
+      console.error("Inventory ready callback failed", error);
+    }
+  }
+}
+
+function waitForInventoryReady() {
+  if (inventoryReady) {
+    return Promise.resolve();
+  }
+  return new Promise(resolve => inventoryReadyQueue.push(resolve));
+}
+
+
+async function fetchPetsData() {
+    const response = await fetch('/data/Pets.json');
+    if (!response.ok) {
+      console.error("Failed to fetch pets data");
+      return;
+    }
+    const latestPets = await response.json();
+    pets = latestPets
+    delete pets.version
+    petsData = Object.values(pets)
+} 
+
+async function fetchGrowAGardenPetsData() {
+    const response = await fetch('/data/Gag.json');
+    if (!response.ok) {
+      console.error("Failed to fetch gag data");
+      return;
+    }
+    const latestGagPets = await response.json();
+    gagpets = latestGagPets
+    delete gagpets.version
+    gagpetsData = Object.values(gagpets)
+} 
+
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+}
+
+const calculatorPath = window.location.pathname;
+if (calculatorPath === "/adopt-me-calculator") {
+  setCookie("game", "Adopt Me", 999);
+} else if (calculatorPath === "/grow-a-garden-values-calculator") {
+  setCookie("game", "Grow a Garden", 999);
+}
+
+inventoryBridge
+  .waitForWindow()
+  .then(win => {
+    resolveInventoryReady();
+    syncInventoryClasses(["value"], ["frost", "sheckles"]);
+    if (typeof win.loadInPets === "function") {
+      return win.loadInPets();
+    }
+    return null;
+  })
+  .catch(error => {
+    console.error("Failed to prepare inventory iframe", error);
+    resolveInventoryReady();
+  });
+
+
+function getCookie(name) {
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    name = name + "=";
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i];
+        while (cookie.charAt(0) == ' ') {
+            cookie = cookie.substring(1);
+        }
+        if (cookie.indexOf(name) == 0) {
+            return cookie.substring(name.length, cookie.length);
+        }
+    }
+    return "";
+}
+
+
+
+function smoothGradientTransition(targetDegree) {
+    let currentDegree = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gradient-degree'));
+    const step = 1;
+    const duration = 1000;
+    
+    const degreeIncrement = targetDegree > currentDegree ? step : -step;
+    const intervalTime = duration / Math.abs(targetDegree - currentDegree);
+    
+    const transitionInterval = setInterval(() => {
+      if (currentDegree === targetDegree) {
+        clearInterval(transitionInterval);
+      } else {
+        currentDegree += degreeIncrement;
+        document.documentElement.style.setProperty('--gradient-degree', currentDegree + 'deg');
+      }
+    }, intervalTime);
+  }
+
+function checkCheckbox() {
+    var rideCheckbox = document.getElementById("ride");
+    var flyCheckbox = document.getElementById("fly");
+    var neonRadio = document.getElementById("neon");
+    var megaRadio = document.getElementById("mega");
+    var regularRadio = document.getElementById("regular")
+    
+    var checkedValues = '';
+    
+    if (rideCheckbox.checked) {
+      checkedValues += rideCheckbox.value;
+    }
+    if (flyCheckbox.checked) {
+      checkedValues += flyCheckbox.value;
+    }
+    if (neonRadio.checked) {
+      checkedValues += neonRadio.value;
+    }
+    if (megaRadio.checked) {
+      checkedValues += megaRadio.value;
+    }
+    if (regularRadio.checked){
+      checkedValues += regularRadio.value;
+    }
+    
+    if (checkedValues !== '') {
+      const bob = checkedValues
+      return bob
+    }
+  }
+
+function convertFormatNoBigInt(string) {
+    if (string === "") return 0;
+
+    let splittedString = string.split(/(K|M|B|T|Qa|Qi|Sx|Sp|Oc|No|De)/);
+
+    if (splittedString.length == 1) {
+        return parseFloat(string.replace(",", "."))
+    }
+
+    let dict = {
+        "K": 10**3,
+        "M": 10**6,
+        "B": 10**9,
+        "T": 10**12,
+        "Qa": 10**15,
+        "Qi": 10**18,
+        "Sx": 10**21,
+        "Sp": 10**24,
+        "Oc": 10**27,
+        "No": 10**30,
+        "De": 10**33
+    };
+
+    let baseStr = splittedString[0];
+    let suffix = splittedString[1];
+
+    if (dict[suffix] == undefined) {
+        console.log("Couldn't covert formatted string: unknown suffix")
+        return 0;
+    }
+
+    try {
+        return parseFloat(baseStr.replace(",", ".")) * dict[suffix]
+    } catch (error) {
+        console.log("Couldn't covert formatted string", error)
+        return 0;
+    }
+
+
+
+}
+
+function convertFormat(string) {
+    if (string === "") return 0n;
+
+    let splittedString = string.split(/(K|M|B|T|Qa|Qi|Sx|Sp|Oc|No|De)/);
+    if (splittedString.length === 1) {
+        // plain number (int or scientific)
+        return sciToBigInt(string);
+    } else {
+        let dict = {
+            "K": 10n**3n,
+            "M": 10n**6n,
+            "B": 10n**9n,
+            "T": 10n**12n,
+            "Qa": 10n**15n,
+            "Qi": 10n**18n,
+            "Sx": 10n**21n,
+            "Sp": 10n**24n,
+            "Oc": 10n**27n,
+            "No": 10n**30n,
+            "De": 10n**33n
+        };
+
+        let baseStr = splittedString[0];
+        let suffix = splittedString[1];
+
+        // Handle decimal base â†’ scale into integer
+        if (baseStr.includes(".")) {
+            let [intPart, fracPart] = baseStr.split(".");
+            let scale = 10n ** BigInt(fracPart.length);
+            let base = BigInt(intPart + fracPart); // concat digits
+            return (base * dict[suffix]) / scale;
+        } else {
+            return BigInt(baseStr) * dict[suffix];
+        }
+    }
+}
+
+// helper to handle scientific notation safely
+function sciToBigInt(str) {
+    if (!/[eE]/.test(str)) {
+        // normal integer string
+        return BigInt(str.replace(/\..*$/, "")); // drop decimal part if ".0"
+    }
+
+    let [mantissa, expStr] = str.toLowerCase().split('e');
+    let exponent = parseInt(expStr, 10);
+
+    // strip decimal point
+    let dot = mantissa.indexOf('.');
+    let fracDigits = 0;
+    if (dot !== -1) {
+        fracDigits = mantissa.length - dot - 1;
+        mantissa = mantissa.replace('.', '');
+    }
+
+    exponent -= fracDigits;
+
+    if (exponent >= 0) {
+        mantissa += '0'.repeat(exponent);
+    } else {
+        mantissa = mantissa.slice(0, exponent); // truncate if fractional
+    }
+
+    if (mantissa === "" || mantissa === "-") return 0n;
+    return BigInt(mantissa);
+}
+
+
+function calculateTotalValue(setId) {
+    const petsContainer = document.getElementById(setId + "-container");
+    const petElements = petsContainer.getElementsByClassName('pet-item');
+    let totalValue = (getCookie("game") == "Grow a Garden" && selectedValue != 1) ? 0n : 0;
+    const outsideBob = checkCheckbox();
+  
+    for (const petElement of petElements) {
+      let attributes = petElement.getAttribute("extra")
+      if (!attributes) {
+        attributes = "d"
+      }
+
+      if (getCookie("game") == "Grow a Garden") {
+        if (gagpets[petElement.getAttribute("id")] == undefined) {
+          value = (selectedValue == 1) ? 0 : 0n;
+        } else {
+          if (selectedValue == 1) {
+            value = convertFormatNoBigInt(petElement.getAttribute("value")) || gagpets[petElement.getAttribute("id")].value
+          } else {
+            value = convertFormat(petElement.getAttribute("sheckles")) || gagpets[petElement.getAttribute("id")].sheckles
+          }
+
+        }
+      } else {
+        if (pets[petElement.getAttribute("id")] == undefined) {
+          value = 0
+        } else {
+          if (pets[petElement.getAttribute("id")].rvalue || pets[petElement.getAttribute("id")].nvalue || pets[petElement.getAttribute("id")].mvalue) {
+
+            if (attributes.includes("d")) {
+              if (attributes.includes("f") && attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["rvalue - fly&ride"]
+              } else if (attributes.includes("f")) {
+                value = pets[petElement.getAttribute("id")]["rvalue - fly"]
+              } else if (attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["rvalue - ride"]
+              } else {
+                if (pets[petElement.getAttribute("id")]["rvalue - nopotion"]) {
+                  value = pets[petElement.getAttribute("id")]["rvalue - nopotion"]
+                } else {
+                  value = pets[petElement.getAttribute("id")]["rvalue"]
+                }
+              }
+            } else if (attributes.includes("n")) {
+              if (attributes.includes("f") && attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["nvalue - fly&ride"]
+              } else if (attributes.includes("f")) {
+                value = pets[petElement.getAttribute("id")]["nvalue - fly"]
+              } else if (attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["nvalue - ride"]
+              } else {
+                if (pets[petElement.getAttribute("id")]["nvalue - nopotion"]) {
+                  value = pets[petElement.getAttribute("id")]["nvalue - nopotion"]
+                } else {
+                  value = pets[petElement.getAttribute("id")]["nvalue"]
+                }
+              }
+            } else if (attributes.includes("m")) {
+              if (attributes.includes("f") && attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["mvalue - fly&ride"]
+              } else if (attributes.includes("f")) {
+                value = pets[petElement.getAttribute("id")]["mvalue - fly"]
+              } else if (attributes.includes("r")) {
+                value = pets[petElement.getAttribute("id")]["mvalue - ride"]
+              } else {
+                if (pets[petElement.getAttribute("id")]["mvalue - nopotion"]) {
+                  value = pets[petElement.getAttribute("id")]["mvalue - nopotion"]
+                } else {
+                  value = pets[petElement.getAttribute("id")]["mvalue"]
+                }
+              }
+            } else {
+              value = 0
+            }
+          } else {
+            if (pets[petElement.getAttribute("id")]["value"]) {
+              value = pets[petElement.getAttribute("id")]["value"]
+            } else {
+              value = 0
+            }
+          }
+        }
+      }
+
+
+
+
+      totalValue += value
+    }
+  
+    if (petElements.length >= 9) {
+      // Add padding to the right of the container
+      petsContainer.style.paddingRight = '0.5vw'; // You can adjust the value as needed
+    } else {
+      // Reset the padding if there are fewer than 9 pets
+      petsContainer.style.paddingRight = '0';
+    }
+  
+    return totalValue;
+  
+  }
+
+  function updateTotalValue(setId) {
+      
+    const numericValue = parseFloat(selectedValue);
+    const valueadjustment = (getCookie("game") == "Adopt Me") ? 1 / numericValue : 1;
+  
+    if (getCookie("game") == "Adopt Me") {
+      const totalValue = Math.round( calculateTotalValue(setId) * valueadjustment * 100) / 100;
+      document.getElementById(`total-value-${setId}`).textContent = totalValue;
+    } else {
+      const totalValue = formatGagNumber(calculateTotalValue(setId));
+      document.getElementById(`total-value-${setId}`).textContent = totalValue;
+    }
+  }
+
+function formatNumber(value) {
+    let divisions = 0
+    while (value >= 1000 || value <= -1000) {
+      value /= 1000
+      divisions += 1
+    }
+
+    if (value < 0) {
+      value = Math.abs(value)
+    }
+
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', "Sp", "Oc", "No", "De"];  // Add more as needed
+
+    let number = (Math.floor(value * 100) / 100).toString();
+    if ((Math.floor(value * 100) / 100) ==  value) {
+      return value + suffixes[divisions];
+    }
+    return number + suffixes[divisions];
+}
+function formatGagNumber(value) {
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'De'];
+
+    // --- BigInt path ---
+    if (typeof value === "bigint") {
+        let negative = value < 0n;
+        let num = negative ? -value : value;
+
+        let divisions = 0;
+        while (num >= 1000n && divisions < suffixes.length - 1) {
+            num /= 1000n;
+            divisions++;
+        }
+
+        // To get fractional digits, take remainder before division
+        let divisor = 1000n ** BigInt(divisions);
+        let whole = value / divisor;
+        let remainder = value % divisor;
+
+        // scale remainder to 3 decimals
+        let decimal = Number((remainder * 1000n) / divisor); // 0â€“999
+        let result = whole.toString();
+
+        if (decimal > 0) {
+            // trim trailing zeros
+            let decStr = decimal.toString().padStart(3, '0').replace(/0+$/, '');
+            if (decStr.length > 0) result += "." + decStr;
+        }
+
+        return (negative ? "-" : "") + result + suffixes[divisions];
+    }
+
+    // --- Number path ---
+    let divisions = 0;
+    let num = Math.abs(value);
+    while (num >= 1000 && divisions < suffixes.length - 1) {
+        num /= 1000;
+        divisions++;
+    }
+
+    let number = parseFloat(num.toFixed(3));
+    if (number >= 1000 && divisions < suffixes.length - 1) {
+        number /= 1000;
+        divisions++;
+    }
+
+    return number + suffixes[divisions];
+}
+
+
+function comparePets() {
+      
+      
+      
+    const numericValue = parseFloat(selectedValue);
+    const valueadjustment = (getCookie("game") == "Adopt Me") ? 1 / numericValue : 1;
+
+    const totalValueSet1 = (getCookie("game") == "Adopt Me" || selectedValue == 1) ? Math.round( calculateTotalValue('set1') * valueadjustment* 100) / 100 : calculateTotalValue('set1'); 
+    const totalValueSet2 = (getCookie("game") == "Adopt Me" || selectedValue == 1) ? Math.round( calculateTotalValue('set2') * valueadjustment* 100) / 100 : calculateTotalValue('set2');
+
+
+    const tvs1 = formatGagNumber(calculateTotalValue('set1')); 
+    const tvs2 = formatGagNumber(calculateTotalValue('set2'));
+
+    const cr = formatGagNumber(calculateTotalValue('set1') - calculateTotalValue('set2'))
+
+
+
+  
+  
+  
+    let comparisonResult;
+    let prosentvin; 
+  
+    if (totalValueSet1 == totalValueSet2) {
+      prosentvin = (getCookie("game") == "Adopt Me" || selectedValue == 1) ? 50 : 50n;
+    } else {
+      prosentvin = (getCookie("game") == "Adopt Me" || selectedValue == 1) ? (100 * totalValueSet1 / (totalValueSet1 + totalValueSet2)) : (100n * totalValueSet1 / (totalValueSet1 + totalValueSet2));
+    }
+    
+    
+    
+    const progressBar = document.getElementById("color-progress");
+    progressBar.style.width = prosentvin + "%";
+  
+  
+    
+  
+    if (totalValueSet1 > totalValueSet2) {
+    comparisonResult = (totalValueSet1 - totalValueSet2);
+  
+    document.querySelector('.mid').classList.remove('upgood');
+    document.querySelector('.mid').classList.remove('NoSe');
+    var midDiv = document.querySelector('.mid');
+    midDiv.classList.add('downbad');
+    
+  
+    var hensElement = document.getElementById('hens');
+    hensElement.style.color = 'var(--theme-textoptionFour)';
+    var hensElement = document.getElementById('hens');
+  
+    var hensElement = document.getElementById('din');
+    hensElement.style.color = 'var(--theme-Highlight)';
+    var hensElement = document.getElementById('din');
+  
+  
+  
+    var hensElement = document.getElementById('Jobiden');
+    hensElement.style.opacity = '0.25';
+    var hensElement = document.getElementById('Jobiden');
+    var hensElement = document.getElementById('Xi');
+    hensElement.style.opacity = '0.25';
+    var hensElement = document.getElementById('Xi');
+    var hensElement = document.getElementById('Trump');
+    hensElement.style.opacity = '1';
+    var hensElement = document.getElementById('Trump');
+  
+    smoothGradientTransition(165)
+  
+    var hensElement = document.getElementById('comparison-result');
+    hensElement.style.color = 'var(--theme-Highlight)';
+    
+  
+    } else if (totalValueSet1 < totalValueSet2) {
+      comparisonResult = (totalValueSet2 - totalValueSet1);
+  
+      document.querySelector('.mid').classList.remove('downbad');
+      document.querySelector('.mid').classList.remove('NoSe');
+      var midDiv = document.querySelector('.mid');
+      midDiv.classList.add('upgood');
+  
+  
+      var hensElement = document.getElementById('hens');
+      hensElement.style.color = 'var(--theme-Highlight)';
+      var hensElement = document.getElementById('hens');
+    
+      var hensElement = document.getElementById('din');
+      hensElement.style.color = 'var(--theme-textoptionFour)';
+      var hensElement = document.getElementById('din');
+    
+  
+  
+      var hensElement = document.getElementById('Jobiden');
+      hensElement.style.opacity = '1';
+      var hensElement = document.getElementById('Jobiden');
+      var hensElement = document.getElementById('Xi');
+      hensElement.style.opacity = '0.25';
+      var hensElement = document.getElementById('Xi');
+      var hensElement = document.getElementById('Trump');
+      hensElement.style.opacity = '0.25';
+      var hensElement = document.getElementById('Trump');
+  
+      smoothGradientTransition(15)
+      
+      var hensElement = document.getElementById('comparison-result');
+      hensElement.style.color = 'var(--theme-TextMid)';
+  
+    } else if (totalValueSet1 === totalValueSet2) {
+      comparisonResult = (totalValueSet1 - totalValueSet2);
+  
+      document.querySelector('.mid').classList.remove('downbad');
+      document.querySelector('.mid').classList.remove('upgood');
+      var midDiv = document.querySelector('.mid');
+      midDiv.classList.add('NoSe');
+      
+      var hensElement = document.getElementById('hens');
+      hensElement.style.color = 'var(--theme-textoptionFour)';
+      var hensElement = document.getElementById('hens');
+    
+      var hensElement = document.getElementById('din');
+      hensElement.style.color = 'var(--theme-textoptionFour)';
+      var hensElement = document.getElementById('din');
+  
+  
+  
+      var hensElement = document.getElementById('Jobiden');
+      hensElement.style.opacity = '0.25';
+      var hensElement = document.getElementById('Jobiden');
+      var hensElement = document.getElementById('Xi');
+      hensElement.style.opacity = '1';
+      var hensElement = document.getElementById('Xi');
+      var hensElement = document.getElementById('Trump');
+      hensElement.style.opacity = '0.25';
+      var hensElement = document.getElementById('Trump');
+  
+      smoothGradientTransition(95)
+  
+      var hensElement = document.getElementById('comparison-result');
+      hensElement.style.color = 'var(--theme-TextMid)';
+
+
+
+
+
+    }
+  
+  
+    if (getCookie("game") == "Adopt Me") {
+      document.getElementById("comparison-result").textContent = Math.round(comparisonResult * 100 ) / 100;
+      setFontSize(totalValueSet2, 'total-value-set2', window.innerHeight > window.innerWidth);
+      setFontSize(totalValueSet1, 'total-value-set1', window.innerHeight > window.innerWidth);
+    } else {
+      document.getElementById("comparison-result").textContent = cr;
+      setFontSize(tvs2, 'total-value-set2', window.innerHeight > window.innerWidth);
+      setFontSize(tvs1, 'total-value-set1', window.innerHeight > window.innerWidth);
+    }
+  
+    let numDigits = 0
+    if (getCookie("game") == "Adopt Me") {
+      const num = Math.round(comparisonResult * 100) / 100;
+      numDigits = num.toString().replace('.', '').length;
+    } else {
+      numDigits = cr.length
+    }
+
+    
+    const paragraphElement = document.getElementById('comparison-result');
+    if (window.innerHeight > window.innerWidth) {
+      if (numDigits <= 1) {
+        paragraphElement.style.fontSize = '1.08em';
+      } else if (numDigits < 3) {
+          paragraphElement.style.fontSize = '0.675em';
+      } else if (numDigits < 4) {
+          paragraphElement.style.fontSize = '0.6075em'; 
+      } else if (numDigits < 5) {
+          paragraphElement.style.fontSize = '0.54em'; 
+      } else if (numDigits < 6) {
+          paragraphElement.style.fontSize = '0.405em';
+      } else {
+        paragraphElement.style.fontSize = '0.36em';}
+    } else {
+        if (numDigits == 1) {
+          paragraphElement.style.fontSize = '1em';
+        } else if (numDigits < 3) {
+          paragraphElement.style.fontSize = '0.65em';
+        } else if (numDigits < 4) {
+          paragraphElement.style.fontSize = '0.6em';
+        } else if (numDigits < 5) {
+          paragraphElement.style.fontSize = '0.55em';
+        } else if (numDigits < 6) {
+          paragraphElement.style.fontSize = '0.4em';
+        } else {
+          paragraphElement.style.fontSize = '0.3em';}
+      }
+  
+  
+  
+}
+
+function matchInitials(petName, initials) {
+    // Split the pet name into words
+    let words = petName.split(' ');
+    
+    // Extract the first letter of each word and join them to form the initials
+    let generatedInitials = words.map(word => word.charAt(0).toLowerCase()).join('');
+      
+    // Compare the generated initials with the provided initials
+    return generatedInitials.toLowerCase().includes(initials);
+  }
+  
+  //this is a shitshow and should be re-wrttien but it works and I couldn't be bothered;
+  function searchFunction() {
+    var input, ul, li, i;
+    input = document.getElementById("petSearch");
+    ul = document.getElementById("petList");
+    li = ul.getElementsByTagName("li");
+  
+    // Get the filter value for pet name
+    var nameFilterValue = input.value.toLowerCase();
+  
+    for (i = 0; i < li.length; i++) {
+      // Access the pet object associated with this list item
+      var pet = usedPets[i];
+      li[i].querySelector('img').classList.remove('favorites');
+  
+      // Replace this condition with your custom filtering logic
+      // Here, we are checking if the pet name contains the name filter value
+      var nameMatch = pet.name.toLowerCase().includes(nameFilterValue);
+  
+  
+      let filteredPets = matchInitials(pet.name, nameFilterValue)
+  
+      var typeMatch =
+        selectedFilterType === "" || pet.type === selectedFilterType;
+          
+      var favoritesMatch = 
+        selectedFavorites === "" || pet.favorites === selectedFavorites;
+      
+  
+      var rarityMatch =
+        selectedFilterTypeRarity === "" || pet.rarity === selectedFilterTypeRarity;
+  
+  
+      if ((nameMatch || filteredPets) && typeMatch && rarityMatch && favoritesMatch) {
+        li[i].style.display = "";
+        if(highlight_favorites && pet.favorites){
+          li[i].querySelector('img').classList.add('favorites');
+        }
+      }
+      else {
+        li[i].style.display = "none";
+      }
+      }
+  }
+
+function setFilterType(filterType) {
+    selectedFavorites = "";
+    if (filterType === 'pets') {
+      selectedFilterType = filterType;
+      // If 'petfilter', display the elements
+      document.querySelectorAll('.under-pet').forEach(element => {
+        element.style.display = 'inline-block';
+      });
+    }
+    else {
+      document.querySelectorAll('.under-pet').forEach(element => {
+        element.style.display = 'none';
+      });
+      if (filterType === 'favorites') {
+        favorites_array_button_visability('visable');
+        selectedFavorites = true;
+        selectedFilterType = "";
+        selectedFilterTypeRarity = "";
+      }
+      else if (filterType === 'highlight_favorites') {
+        highlight_favorites = true;
+        selectedFavorites = "";
+        selectedFilterType = "";
+        selectedFilterTypeRarity = "";
+  
+      }
+      else {
+        outsideFavorites();
+        selectedFilterType = filterType.toLowerCase();
+        // If not 'petfilter', hide the elements
+  
+        selectedFilterTypeRarity = "";
+      }
+      // Add the 'selected' class to the clicked item
+      // Call the search function to apply the new filter
+    }
+    searchFunction();
+}
+  
+function setFilterRarity(filterTypeR) {
+selectedFavorites = "";
+selectedFilterTypeRarity = filterTypeR; // Set the selected filter type
+searchFunction(); // Call the search function to apply the new filter
+}
+
+function roundToFirstDigit(num) {
+  if (num >= 10) {
+      return Math.round(num);
+  }
+  if (num == 0){
+    return 0
+  }
+
+  let n = 10;
+  while (Math.round(num * n) === 0) {
+      n = n * 10;
+  }
+  
+  if (num < 1) { n = n * 10}
+
+  const result = (Math.round(num * n) / n).toFixed(n.toString().length - 1);
+  return parseFloat(result);
+}
+
+const maxPetsPerSet = 18;
+
+function addToSet(setId, pat, attributes="") {
+  if (setId == "") {
+    setId = lastSet
+  }
+  removeAddButtons(setId)
+  const setContainer = document.getElementById(setId + "-container");
+  const petCount = setContainer.childElementCount;
+
+  if (petCount >= maxPetsPerSet) {
+      alert("The set is already full with " + maxPetsPerSet + " pets.");
+      return;
+  }
+  
+  
+
+  
+  const petElement = document.createElement("div");
+  petElement.className = "pet-item";
+  petElement.setAttribute("id", pat.id)
+
+  outsideBob = 'd'
+
+  petElement.dataset.value = pat.d;
+
+
+  if (pat.type == "pets") {
+    outsideBob = attributes || checkCheckbox()
+    petElement.setAttribute("extra", outsideBob)
+    petElement.dataset.value = pat.value || pat.rvalue;
+  }
+
+  const img = document.createElement("img");
+  img.src = pat.image;
+  img.alt = pat.name + " Image";
+  img.width = 100;
+  img.height = 100;
+  img.loading = "lazy"
+
+  img.classList.add(outsideBob);
+
+  petElement.appendChild(img);
+
+  if ((getCookie("game") || "Adopt Me") == "Adopt Me") {
+
+    const imgOverlay = document.createElement("img");
+
+    const folderPath = '/images/overlay/';
+    const imageName = outsideBob + '.png';
+    imgOverlay.src = folderPath + imageName;
+
+    imgOverlay.alt = "Overlay Image";
+    imgOverlay.width = 100;
+    imgOverlay.height = 100;
+    imgOverlay.loading = "lazy"
+    imgOverlay.classList.add("Overlay")
+    if (outsideBob != "d") {
+        petElement.appendChild(imgOverlay)
+    }
+  } else if (getCookie("game") == "Grow a Garden") {
+    console.log(attributes)
+    if (attributes) {
+      if (attributes.mutation) {
+        const div = document.createElement("div");
+        div.classList.add("attributesWrapper")
+        div.innerHTML = `<div>
+                             <div class="mutation">${attributes.mutation.toUpperCase()}</div>
+                         </div>
+                         <div>
+
+                         </div>`
+        petElement.appendChild(div)
+
+      }
+      petElement.setAttribute("value", attributes.value)
+      petElement.setAttribute("sheckles", attributes.sheckles)
+    } else {
+      petElement.setAttribute("value", gagpets[pat.id.toString()]["value"])
+      petElement.setAttribute("sheckles", gagpets[pat.id.toString()]["sheckles"])
+    }
+  }
+  
+
+  petElement.addEventListener("click", () => {
+  setContainer.removeChild(petElement);
+  removeAddButtons(setId)
+  plussknapp(setId)
+  updateTotalValue(setId);
+  comparePets()
+  });
+
+  setContainer.appendChild(petElement);
+  updateTotalValue(setId);
+  comparePets()
+
+
+  if (petCount <= maxPetsPerSet) {
+    plussknapp (setId)
+  }
+  if (petCount >= (maxPetsPerSet-1)){
+    removeAddButtons(setId)
+  }
+
+  if (getCookie("game") == "Adopt Me") {
+    const compare = document.getElementById("comparison-result")
+    compare.innerText = Math.round(compare.textContent * 100 ) / 100;
+  }
+
+}
+
+function populatePetsSet(setId, usedPets) {
+  // Empty the container
+  const setContainer = document.getElementById(setId + "-container");
+  setContainer.innerHTML = "";
+  
+  
+  
+  plussknapp (setId)
+}
+
+function plussknapp (setId) {
+  const setContainer = document.getElementById(setId + "-container");
+  
+  
+  const petElement = document.createElement("div");
+  petElement.className = "addbutton";
+  
+  petElement.dataset.value = 0;
+  
+  
+  const img = document.createElement("img");
+  img.src = "/images/misc/add2.png"
+  img.alt = "add button" + " Image";
+  img.width = 128;
+  img.height = 128;
+  img.loading = "lazy"
+  
+  img.addEventListener('click', () => {
+    waitForInventoryReady().then(() => openModal(modal, setId));
+  });
+  
+  
+  petElement.appendChild(img);
+  
+  setContainer.appendChild(petElement);
+  updateTotalValue(setId);
+}
+
+function removeAddButtons(setId) {
+  const setContainers = document.querySelectorAll(`#${setId}-container .addbutton`);
+
+  setContainers.forEach((setContainer) => {
+    setContainer.remove();
+  });
+}
+
+// Create a function to open the modal popup
+function openPopup() {
+  // Create a modal container
+  const modal = document.createElement("div");
+  modal.classList.add("modal"); // You can style this with CSS
+  
+  // Add content to the modal
+  const modalContent = document.createElement("div");
+  modalContent.classList.add("modal-content");
+  modalContent.textContent = "This is the modal content.";
+  
+  // Create a close button for the modal
+  const closeButton = document.createElement("button");
+  closeButton.classList.add("close-button");
+  closeButton.textContent = "Close";
+  closeButton.addEventListener("click", () => {
+  // Close the modal when the close button is clicked
+  document.body.removeChild(modal);
+  });
+  
+  // Append content and close button to the modal
+  modalContent.appendChild(closeButton);
+  modal.appendChild(modalContent);
+  
+  // Append the modal to the document body
+  document.body.appendChild(modal);
+}
+
+/*
+function showAlertOnScroll() {
+  // Calculate the total scroll height of the page
+  const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+  // Calculate the current scroll position
+  const currentScrollPosition = window.scrollY;
+
+  // Check if the current scroll position is at the bottom
+  if (currentScrollPosition >= totalScrollHeight) {
+      foot.style.opacity = 1; // Show the footer
+  } else {
+      foot.style.opacity = 0; // Hide the footer
+  }
+}
+
+// Add a scroll event listener to trigger the alert
+window.addEventListener('scroll', showAlertOnScroll);
+*/
+
+let lastSet = "none"
+
+function openModal(modal, setId) {
+  //if (modal == null) return
+  //modal.classList.add('active')
+  //overlay.classList.add('active')
+  //modal.classList.add(setId)
+  /*setLiWidth()*/
+  lastSet = setId
+  
+  closeNotifications()
+  waitForInventoryReady().then(() => {
+    inventoryBridge.call("openInventory")
+  })
+}
+
+function closeModal(modal) {
+  //if (modal == null) return;
+  //let petListcontainer=  document.getElementById('petList');
+  //modal.classList.remove('active');
+  //overlay.classList.remove('active');
+  //modal.classList.remove('set1');
+  //modal.classList.remove('set1');
+  // PetListNormal();
+  
+  /*
+  adjustFontSizeL();
+  adjustFontSizeR();*/
+
+  waitForInventoryReady().then(() => {
+    inventoryBridge.call("closeInventory")
+  })
+}
+
+/*
+function setLiWidth() {
+  const liElements = document.querySelectorAll('.selecter li');
+  let maxWidth = 0;
+
+  liElements.forEach(li => {
+    const liWidth = li.scrollWidth;
+    if (liWidth > maxWidth) {
+      maxWidth = liWidth;
+    }
+  });
+
+  liElements.forEach(li => {
+    li.style.width = maxWidth + 'px';
+  });
+}
+
+
+
+window.addEventListener('DOMContentLoaded', setLiWidth);
+window.addEventListener('orientationchange', setLiWidth);
+*/
+
+function loadCalculator() {
+
+  
+
+    if (getCookie("game") == "Grow a Garden") {
+      usedPets = gagpetsData
+    } else {
+      usedPets = petsData
+    }
+
+    const petList = document.getElementById("petList");
+    petList.innerHTML = '<ul id="favoritebuttonfull" style="position: relative; display: none;"><img style="width:60%;height:60%;" loading="lazy" src="/images/misc/transparent.png" id="idk"><img style="width:60%;height:60%;" loading="lazy" src="/images/misc/add.png" alt="addfavoritebutton" id="addfavoritebutton" style=" display: none;"></ul>'
+
+    const openModalButtons = document.querySelectorAll('[data-modal-target]')
+    const closeModalButtons = document.querySelectorAll('[data-close-button]')
+    const overlay = document.getElementById('overlay')
+    
+    openModalButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const modal = document.querySelector(button.dataset.modalTarget)
+        openModal(modal)
+      })
+    })
+    
+    overlay.addEventListener('click', () => {
+      const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+        closeModal(modal)
+      })
+    })
+    
+    closeModalButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const modal = button.closest('.modal')
+        closeModal(modal)
+      })
+    })
+      
+
+    // Call the function to populate both sets
+    populatePetsSet("set1", usedPets);
+    populatePetsSet("set2", usedPets);
+      
+      
+
+      
+      
+    let lastClickedImage;
+    
+    var disablefy = true;
+    
+    Object.values(usedPets).forEach(pet => {
+      const listItem = document.createElement("li");
+      const petImage = document.createElement("img");
+    
+      listItem.classList.add("petsearchlist");
+
+      listItem.setAttribute("rarity", pet.rarity)
+      listItem.setAttribute("category", pet.type)
+      listItem.setAttribute("name", pet.name)
+      listItem.setAttribute("value", pet["value"] ?? pet.rvalue)
+
+      order = parseInt((pet["score"] ?? 1000) * 10)
+
+      if (pet.type == "pets") {
+          order += (10 ** 7) * 1
+      }
+      if (pet.type == "eggs") {
+          order += (10 ** 7) * 2
+      }
+      if (pet.type == "vehicles") {
+          order += (10 ** 7) * 3
+      }
+      if (pet.type == "pet wear") {
+          order += (10 ** 7) * 4
+      }
+      if (pet.type == "other") {
+          order += (10 ** 7) * 5
+      }
+
+      if (pet.rarity == "legendary") {
+          order += (10 ** 6) * 1
+      }
+      if (pet.rarity == "ultra rare" || pet.rarity == "ulte") {
+          order += (10 ** 6) * 2
+      }
+      if (pet.rarity == "rare") {
+          order += (10 ** 6) * 3
+      }
+      if (pet.rarity == "uncommon") {
+          order += (10 ** 6) * 4
+      }
+      if (pet.rarity == "common") {
+          order += (10 ** 6) * 5
+      }
+
+      listItem.style.order = order
+
+
+
+    
+      petImage.src = pet.image;
+      petImage.alt = pet.name;
+      petImage.id = pet.name;
+      petImage.loading = "lazy"
+      listItem.appendChild(petImage);
+      petList.appendChild(listItem);
+    
+      petImage.addEventListener('click', () => {
+        if (disablefy) {
+          var elementsWithSet1Class = document.getElementsByClassName("set1");
+          var elementsWithSet2Class = document.getElementsByClassName("set2");
+    
+          if (elementsWithSet1Class.length > 0) {
+            var classId = "set1";
+          } else if (elementsWithSet2Class.length > 0) {
+            var classId = "set2";
+          }
+    
+          if (lastClickedImage) {
+            lastClickedImage.classList.remove("lastselected");
+          }
+          petImage.classList.add("lastselected");
+          lastClickedImage = petImage;
+    
+          addToSet(classId, pet);
+        }
+      });
+    });
+
+    comparePets()
+}
+
+Promise.all([fetchPets, fetchGagPets]).then(() => {
+    //loadCalculator()
+    sharkClick()
+})
+
+document.getElementById('show-filter-list').addEventListener('click', toggleGrid);
+
+
+window.addEventListener('resize', () => {
+    toggleGrid();
+    toggleGrid();
+    comparePets()
+
+});
+
+window.addEventListener('orientationchange', () => {
+  comparePets()
+});
+
+      
+/*
+function adjustFontSizeL() {
+  const container = document.querySelector('#topbar');
+  const dinElement = document.getElementById('din');
+  const containerWidth = container.clientWidth;
+  const textWidth = dinElement.scrollWidth;
+
+  dinElement.style.fontSize = 'min(5vw, 13vh)'
+  const fontSize = (0.8*containerWidth / textWidth) * 100 + '%';
+  dinElement.style.fontSize = fontSize;
+}
+
+function adjustFontSizeR() {
+  const container = document.querySelector('#topbar');
+  const hensElement = document.getElementById('hens');
+  const containerWidth = container.clientWidth;
+  const textWidth = hensElement.scrollWidth;
+
+  alert(containerWidth + "+" + textWidth)
+
+  const fontSize = (0.8 * containerWidth / textWidth) * 100 + '%';
+  hensElement.style.fontSize = fontSize;
+}
+
+window.addEventListener('resize', adjustFontSize);
+adjustFontSizeL();
+window.addEventListener('resize', adjustFontSize);
+adjustFontSizeR();
+*/
+
+function setSelctedFilterbuttons(event) {
+  if (event.target.id !== 'modalfilterbuttons') {
+    if (event.target.id !== 'Favorites') {
+      favorites_array_button_visability('');
+    }
+    var items = document.querySelectorAll('.button-like');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.remove('selected');
+    }
+    event.target.classList.add('selected');
+  }
+}
+  
+  
+  
+  
+  
+  //favorites filter chain start
+  
+  
+function favorites_array_button_visability(visability,){
+  var array_button = document.getElementById('addfavoritebutton');
+  var favoritebuttonfull = document.getElementById('favoritebuttonfull');
+
+  if (visability === 'visable'){
+    array_button.style.display = '';
+    favoritebuttonfull.style.display = '';
+  }
+  else {
+    array_button.style.display = 'none';
+    favoritebuttonfull.style.display = 'none';
+  }
+
+}
+  
+  
+  
+function getFavorites(){
+  let stored_array = localStorage.getItem('favorites');
+  if (stored_array){
+    let loaded_string = JSON.parse(stored_array);
+    var favorites = new Set(loaded_string);
+  }
+  else{
+    favorites = new Set([]);
+  }
+  return favorites;
+}
+  
+var favorites_list = getFavorites();
+//  console.log(favorites_list);
+  
+  
+  
+function loadfavorites(){
+  for (let item of favorites_list){
+    let petindex = usedPets.findIndex(pet => pet.name == item);
+    if (petindex !== -1){
+    usedPets[petindex].favorites = true;
+    }
+    else{
+      console.log(item);
+      console.log(favorites_list);
+    }
+  }
+}
+  
+  
+  
+function favorites_array_manipulation(event){
+  if (event.target.id !== 'addfavoritebutton' && event.target.id !== 'petList'){
+    if (favorites_list.has(event.target.alt)){
+      favorites_list.delete(event.target.alt);
+      event.target.classList.remove('favorites');
+      let petindex = usedPets.findIndex((pet) => pet.name == event.target.alt);
+      usedPets[petindex].favorites = false;
+    }
+    else{
+      favorites_list.add(event.target.alt);
+      event.target.classList.add('favorites');
+    }
+  }
+  save_favorites();
+}
+  
+function removeFavorites(){
+  disablefy = false;
+  setFilterType('highlight_favorites');
+  var petDisplayContainer = document.getElementById('petList');
+  var favorites_array_button = document.getElementById('addfavoritebutton')
+  favorites_array_button.setAttribute('src','/images/misc/subtract.png');
+  favorites_array_button.style.filter = "var(--theme-HighlightFilter)";
+  favorites_array_button.removeEventListener('click', removeFavorites);
+  favorites_array_button.addEventListener('click', PetListNormal);
+  petDisplayContainer.addEventListener('click', favorites_array_manipulation);
+}
+
+function PetListNormal(){
+  disablefy = true;
+  highlight_favorites = false;
+  loadfavorites();
+  setFilterType('favorites');
+  var petDisplayContainer = document.getElementById('petList');
+  var favorites_array_button = document.getElementById('addfavoritebutton')
+  favorites_array_button.setAttribute('src','/images/misc/add2.png');
+  favorites_array_button.style.filter = "var(--theme-Filteroption)";
+  favorites_array_button.removeEventListener('click', PetListNormal);
+  favorites_array_button.addEventListener('click', removeFavorites);
+  petDisplayContainer.removeEventListener('click', favorites_array_manipulation);
+}
+  
+function outsideFavorites(){
+  disablefy = true;
+  highlight_favorites = false;
+  document.getElementById('petList').removeEventListener('click', favorites_array_manipulation);
+}
+
+function save_favorites(){
+  let saveing_array = Array.from(favorites_list);
+  let stringer = JSON.stringify(saveing_array);
+  localStorage.setItem('favorites', stringer);
+}
+
+//favorites filter chain end
+
+
+  
+  
+function petselected(petData) {
+  const img = document.createElement("img");
+  img.src = petData.image;
+  img.alt = petData.name + " Image";
+  img.width = 100;
+  img.height = 100;
+  img.loading = "lazy"
+
+
+  const petElement = document.getElementById("petElement");
+  petElement.appendChild(img);
+  const setContainer = document.getElementById("setContainer");
+  setContainer.appendChild(petElement);
+  updateTotalValue(setId);
+  
+}
+  
+  
+function checkCheckbox() {
+  var rideCheckbox = document.getElementById("ride");
+  var flyCheckbox = document.getElementById("fly");
+  var neonRadio = document.getElementById("neon");
+  var megaRadio = document.getElementById("mega");
+  var regularRadio = document.getElementById("regular")
+  
+  var checkedValues = '';
+  
+  if (rideCheckbox.checked) {
+    checkedValues += rideCheckbox.value;
+  }
+  if (flyCheckbox.checked) {
+    checkedValues += flyCheckbox.value;
+  }
+  if (neonRadio.checked) {
+    checkedValues += neonRadio.value;
+  }
+  if (megaRadio.checked) {
+    checkedValues += megaRadio.value;
+  }
+  if (regularRadio.checked){
+    checkedValues += regularRadio.value;
+  }
+  
+  if (checkedValues !== '') {
+    const bob = checkedValues
+    return bob
+  }
+}
+  
+var btn = document.getElementById('btn');
+var selectedValue = 1; 
+  
+function sharkClick() {
+  btn.classList.add("shark");
+  btn.classList.remove("frost");
+  selectedValue = 1; 
+  comparePets();
+  updateTotalValue("set2");
+  updateTotalValue("set1");
+
+  document.getElementById("sharkforst").classList.add("mimic")
+
+  syncInventoryClasses(["value"], ["frost", "sheckles"])
+
+
+}
+  
+function frostClick() {
+  btn.classList.remove("shark");
+  btn.classList.add("frost");
+
+  document.getElementById("sharkforst").classList.remove("mimic")
+  
+  function findPetRfd(petName) {
+    for (let pet of Object.values(petsData)) {
+      if (pet.name === petName) { 
+        return pet["rvalue - fly&ride"];
+      }
+    }
+    return null; // Return null if the pet is not found
+  }
+  
+  selectedValue = findPetRfd("Frost Dragon")
+  
+  comparePets();
+  updateTotalValue("set2");
+  updateTotalValue("set1");
+
+
+  syncInventoryClasses(["frost", "sheckles"], ["value"])
+
+}
+
+
+let isGridTemplateA = false; 
+      
+function toggleGrid() {
+  const modalBody = document.querySelector('.modal-body');
+  const selecterElements = document.querySelectorAll('.selecter');
+
+  // Define the two gridTemplateAreas values
+  const gridTemplateA = `
+    "FilterButton search search"
+    "pets pets pets"
+    "liste2 liste2 liste2"
+  `;
+
+  const gridTemplateB = `
+  "FilterButton search search"
+  "liste pets pets"
+  "liste liste2 liste2" 
+  `;
+
+  // Toggle the flag and set the appropriate gridTemplateAreas
+  modalBody.style.gridTemplateAreas = isGridTemplateA ? gridTemplateB : gridTemplateA;
+  isGridTemplateA = !isGridTemplateA;
+
+  // Hide or show the .selecter class elements based on the flag
+  selecterElements.forEach(element => {
+    element.style.display = isGridTemplateA ? 'none' : 'flex';
+
+    if (window.innerHeight > window.innerWidth) {
+    const petSearch = document.getElementById('petSearch');
+    petSearch.style.width = isGridTemplateA ? '60vw' : '100%';
+  } else {
+    petSearch.style.width = '32vw'}
+
+  });
+};
+
+
+
+
+function setFontSize(num, containerId, isPortrait) {
+  const numDigits = num.toString().replace('.', '').length;
+  const paragraphElement = document.getElementById(containerId);
+
+  if (isPortrait) {
+      if (numDigits <= 1) {
+      paragraphElement.style.fontSize = '2.0em';
+      } else if (numDigits < 3) {
+      paragraphElement.style.fontSize = '1.5em';
+      } else if (numDigits < 4) {
+      paragraphElement.style.fontSize = '1.35em';
+      } else if (numDigits < 5) {
+      paragraphElement.style.fontSize = '1.2em';
+      } else if (numDigits < 6) {
+      paragraphElement.style.fontSize = '0.9em';
+      } else {
+      paragraphElement.style.fontSize = '0.72em';}
+  } else {
+      if (numDigits == 1) {
+          paragraphElement.style.fontSize = '0.9em';
+      } else if (numDigits < 3) {
+          paragraphElement.style.fontSize = '0.8125em';
+      } else if (numDigits < 4) {
+          paragraphElement.style.fontSize = '0.75em';
+      } else if (numDigits < 5) {
+          paragraphElement.style.fontSize = '0.6875em';
+      } else if (numDigits < 6) {
+          paragraphElement.style.fontSize = '0.5em';
+      } else {
+          paragraphElement.style.fontSize = '0.375em';
+      }
+  }
+}
+
+function closeModal(modal) {
+  if (modal == null) return
+  let petListcontainer=  document.getElementById('petList');
+  modal.classList.remove('active');
+  overlay.classList.remove('active');
+  modal.classList.remove('set1');
+  modal.classList.remove('set1');
+  // PetListNormal();
+  
+  /*
+  adjustFontSizeL();
+  adjustFontSizeR();*/
+
+  waitForInventoryReady().then(() => {
+    inventoryBridge.call("closeInventory")
+  })
+}
