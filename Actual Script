@@ -1,60 +1,98 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "Rayfield Example Window",
-   Icon = 0,
-   LoadingTitle = "Adopt Me Values",
-   LoadingSubtitle = "By Txq_pxT",
-   ShowText = "Rayfield",
-   Theme = "Default",
-   ToggleUIKeybind = "K",
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false,
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = nil,
-      FileName = "Big Hub"
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "noinvitelink",
-      RememberJoins = true
-   },
-   KeySystem = false,
-   KeySettings = {
-      Title = "Untitled",
-      Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided",
-      FileName = "Key",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"Hello"}
-   }
-})
-
--- Perform the GET request
-local https = require("ssl.https")
-local ltn12 = require("ltn12")
-local response_body = {}
-
-local res, code, response_headers = https.request{
-    url = "https://elvebredd.com/",
-    sink = ltn12.sink.table(response_body)
+-- Your data (truncated for brevity, assume full data is loaded here)
+local data = {
+  -- Sample entries from your data (add more as needed)
+  -- For demonstration, we'll use a subset
+  [0] = {
+    si = "Hedgehog",
+    rvalue = 50,
+    nvalue = 201,
+    mvalue = 806,
+    name = "Hedgehog",
+    rarity = "ultra rare",
+    score = 2
+  },
+  [1] = {
+    si = "African Wild Dog",
+    rvalue = 55,
+    nvalue = 200,
+    mvalue = 788,
+    name = "African Wild Dog",
+    rarity = "ultra rare",
+    score = 1
+  },
+  [2] = {
+    si = "Dalmatian",
+    rvalue = 41,
+    nvalue = 165,
+    mvalue = 660,
+    name = "Dalmatian",
+    rarity = "ultra rare",
+    score = 3
+  }
+  -- You can load all data here
 }
 
-local websiteContent = ""
+-- UI variables
+local selectedIndex = nil
+local listItems = {}
+local maxItems = 20 -- Max items shown at once
 
-if res == 1 then
-    websiteContent = table.concat(response_body)
-else
-    websiteContent = "HTTP request failed with code: " .. tostring(code)
+-- Build list of pet names for menu
+local function buildList()
+  listItems = {}
+  for i, v in pairs(data) do
+    table.insert(listItems, {index = i, name = v.si or v.name or "Unknown"})
+  end
 end
 
--- Create a label to display the website content
-local WebsiteLabel = Window:CreateLabel({
-    Title = "Elvebredd",
-    Content = websiteContent,
-    Size = {400, 300}
-})
+-- Draw menu
+local function drawMenu()
+  cls()
+  print("Pets List (Select to View Details)", 10, 5, 15)
+  for i, item in ipairs(listItems) do
+    local displayStr = string.format("%d. %s", i, item.name)
+    if selectedIndex == i then
+      print("> " .. displayStr, 10, 10 + i*12, 14)
+    else
+      print(displayStr, 10, 10 + i*12, 12)
+    end
+  end
+  -- Instructions
+  print("Press numbers to select, 'X' to exit", 10, 200, 12)
+end
 
--- Load the configuration after setting up the label
-Rayfield:LoadConfiguration()
+-- Show details of selected pet
+local function showDetails(index)
+  local pet = data[listItems[index].index]
+  cls()
+  print("Pet Details", 10, 5, 15)
+  print("Name: " .. (pet.si or pet.name or "Unknown"), 10, 20, 15)
+  print("Rarity: " .. (pet.rarity or "N/A"), 10, 32, 12)
+  print("Score: " .. pet.score, 10, 44, 12)
+  print("RValue: " .. pet.rvalue, 10, 56, 12)
+  print("NValue: " .. pet.nvalue, 10, 68, 12)
+  print("MValue: " .. pet.mvalue, 10, 80, 12)
+  print("Press any key to return", 10, 200, 12)
+end
+
+-- Initialize
+buildList()
+
+-- Main loop
+while true do
+  drawMenu()
+  local key = waitkey()
+  if key then
+    if key == "x" then
+      break -- Exit script
+    elseif tonumber(key) then
+      local num = tonumber(key)
+      if num >=1 and num <= #listItems then
+        selectedIndex = num
+        showDetails(selectedIndex)
+        waitbreak() -- wait until any key pressed
+        selectedIndex = nil
+      end
+    end
+  end
+end
